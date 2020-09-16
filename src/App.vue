@@ -8,7 +8,6 @@
 export default {
   name: 'App'
 }
-
 </script>
 <script>
 var _hmt = _hmt || [];
@@ -19,4 +18,12 @@ var _hmt = _hmt || [];
   s.parentNode.insertBefore(hm, s);
 })();
 </script>
+
+<style lang="scss">
+  .el-dialog__wrapper{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
 

@@ -1,5 +1,6 @@
 'use strict'
 const path = require('path')
+const CompressionPlugin = require('compression-webpack-plugin')// 引入gzip压缩插件
 const defaultSettings = require('./src/settings.js')
 
 function resolve(dir) {
@@ -28,12 +29,13 @@ module.exports = {
    */
   publicPath: '/',
   outputDir: 'dist',
-  assetsDir: 'static',
+  // assetsDir: '../../static/admin',
+  // assetsDir: '/',
   lintOnSave: false, // process.env.NODE_ENV === 'development',
   productionSourceMap: false,
   devServer: {
     port: port,
-    open: true,
+    open: false,
     overlay: {
       warnings: false,
       errors: true
@@ -41,6 +43,13 @@ module.exports = {
   },
   configureWebpack: {
     plugins: [
+      new CompressionPlugin({
+        algorithm: 'gzip',
+        test: /\.js$|\.html$|\.css/, // 匹配文件名
+        threshold: 10240, // 对超过10kb的数据进行压缩
+        deleteOriginalAssets: false, // 是否删除原文件
+        minRatio: 0.8
+      }),
       new MonacoWebpackPlugin()
     ],
     name: name,
@@ -54,7 +63,6 @@ module.exports = {
     config.plugins.delete('preload') // TODO: need test
     config.plugins.delete('prefetch') // TODO: need test
 
-    // set svg-sprite-loader
     config.module
       .rule('svg')
       .exclude.add(resolve('src/icons'))
@@ -83,7 +91,6 @@ module.exports = {
       .end()
 
     config
-      // https://webpack.js.org/configuration/devtool/#development
       .when(process.env.NODE_ENV === 'development',
         config => config.devtool('cheap-source-map')
       )
@@ -126,5 +133,20 @@ module.exports = {
           config.optimization.runtimeChunk('single')
         }
       )
+  },
+  css: {
+    loaderOptions: {
+      less: {
+        modifyVars: {
+          // less vars，customize ant design theme
+
+          // 'primary-color': '#F5222D',
+          // 'link-color': '#F5222D',
+          'border-radius-base': '2px'
+        },
+        // DO NOT REMOVE THIS LINE
+        javascriptEnabled: true
+      }
+    }
   }
 }
