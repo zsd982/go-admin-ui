@@ -136,6 +136,7 @@
                 @click="handleDataScope(scope.row)"
               >数据权限</el-button>
               <el-button
+                v-if="scope.row.roleKey!=='admin'"
                 v-permisaction="['system:sysrole:remove']"
                 size="mini"
                 type="text"
@@ -155,7 +156,7 @@
         />
 
         <!-- 添加或修改角色配置对话框 -->
-        <el-dialog :title="title" :visible.sync="open" width="500px">
+        <el-dialog v-if="open" :title="title" :visible.sync="open" width="500px">
           <el-form ref="form" :model="form" :rules="rules" label-width="80px">
             <el-form-item label="角色名称" prop="roleName">
               <el-input v-model="form.roleName" placeholder="请输入角色名称" :disabled="isEdit" />
@@ -181,7 +182,7 @@
                 :data="menuOptions"
                 show-checkbox
                 node-key="id"
-                empty-text="加载中，请稍后"
+                :empty-text="menuOptionsAlert"
                 :props="defaultProps"
               />
             </el-form-item>
@@ -196,7 +197,7 @@
         </el-dialog>
 
         <!-- 分配角色数据权限对话框 -->
-        <el-dialog :title="title" :visible.sync="openDataScope" width="500px">
+        <el-dialog v-if="openDataScope" :title="title" :visible.sync="openDataScope" width="500px">
           <el-form :model="form" label-width="80px">
             <el-form-item label="角色名称">
               <el-input v-model="form.roleName" :disabled="true" />
@@ -299,6 +300,7 @@ export default {
       menuOptions: [],
       // 部门列表
       deptOptions: [],
+      menuOptionsAlert: '加载中，请稍后',
       // 查询参数
       queryParams: {
         pageIndex: 1,
@@ -376,13 +378,18 @@ export default {
       return checkedKeys
     },
     /** 根据角色ID查询菜单树结构 */
-    getRoleMenuTreeselect(roleId) {
-      roleMenuTreeselect(roleId).then(response => {
-        this.menuOptions = response.menus
-        this.$nextTick(() => {
-          this.$refs.menu.setCheckedKeys(response.checkedKeys)
+    getRoleMenuTreeselect(row) {
+      if (row.roleKey === 'admin') {
+        this.menuOptionsAlert = '系统超级管理员无需此操作'
+        this.menuOptions = []
+      } else {
+        roleMenuTreeselect(row.roleId).then(response => {
+          this.menuOptions = response.menus
+          this.$nextTick(() => {
+            this.$refs.menu.setCheckedKeys(response.checkedKeys)
+          })
         })
-      })
+      }
     },
     /** 根据角色ID查询部门树结构 */
     getRoleDeptTreeselect(roleId) {
@@ -469,7 +476,7 @@ export default {
         this.open = true
         this.title = '修改角色'
         this.isEdit = true
-        this.getRoleMenuTreeselect(roleId)
+        this.getRoleMenuTreeselect(row)
       })
     },
     /** 分配数据权限操作 */
